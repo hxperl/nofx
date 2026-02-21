@@ -593,7 +593,7 @@ func (s *Server) runRealAITest(userID, modelID, systemPrompt, userPrompt string)
 		return "", fmt.Errorf("AI model %s is not enabled", model.Name)
 	}
 
-	if model.APIKey == "" {
+	if model.APIKey == "" && model.Provider != "claude-code" {
 		return "", fmt.Errorf("AI model %s is missing API Key", model.Name)
 	}
 
@@ -625,6 +625,9 @@ func (s *Server) runRealAITest(userID, modelID, systemPrompt, userPrompt string)
 	case "openai":
 		aiClient = mcp.NewOpenAIClient()
 		aiClient.SetAPIKey(apiKey, model.CustomAPIURL, model.CustomModelName)
+	case "claude-code":
+		aiClient = mcp.NewClaudeCodeClient()
+		aiClient.SetAPIKey("", "", model.CustomModelName)
 	default:
 		// Use generic client
 		aiClient = mcp.NewClient()

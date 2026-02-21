@@ -97,6 +97,8 @@ func (e *DebateEngine) InitializeClients(participants []*store.DebateParticipant
 			client = mcp.NewGrokClient()
 		case "kimi":
 			client = mcp.NewKimiClient()
+		case "claude-code":
+			client = mcp.NewClaudeCodeClient()
 		default:
 			client = mcp.New()
 		}

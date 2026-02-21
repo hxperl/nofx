@@ -71,6 +71,10 @@ func configureMCPClient(cfg BacktestConfig, base mcp.AIClient) (mcp.AIClient, er
 		oaiC := mcp.NewOpenAIClientWithOptions()
 		oaiC.(*mcp.OpenAIClient).SetAPIKey(cfg.AICfg.APIKey, cfg.AICfg.BaseURL, cfg.AICfg.Model)
 		return oaiC, nil
+	case "claude-code":
+		cc := mcp.NewClaudeCodeClient()
+		cc.SetAPIKey("", "", cfg.AICfg.Model)
+		return cc, nil
 	case "custom":
 		if cfg.AICfg.BaseURL == "" || cfg.AICfg.APIKey == "" || cfg.AICfg.Model == "" {
 			return nil, fmt.Errorf("custom provider requires base_url, api key and model")
@@ -125,6 +129,8 @@ func cloneBaseClient(base mcp.AIClient) *mcp.Client {
 			cp := *c.Client
 			return &cp
 		}
+	case *mcp.ClaudeCodeClient:
+		// ClaudeCodeClient doesn't embed Client; return a new default client
 	}
 	// Fall back to a new default client
 	return mcp.NewClient().(*mcp.Client)

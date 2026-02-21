@@ -96,6 +96,11 @@ const AI_PROVIDER_CONFIG: Record<string, {
     apiUrl: 'https://platform.moonshot.ai/console/api-keys',
     apiName: 'Moonshot',
   },
+  'claude-code': {
+    defaultModel: 'claude-sonnet-4-6',
+    apiUrl: '',
+    apiName: 'Claude Code CLI',
+  },
 }
 
 interface AITradersPageProps {
@@ -1532,9 +1537,11 @@ function ModelConfigModal({
     }
   }
 
+  const isClaudeCode = selectedModel?.provider === 'claude-code'
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedModelId || !apiKey.trim()) return
+    if (!selectedModelId || (!isClaudeCode && !apiKey.trim())) return
     onSave(selectedModelId, apiKey.trim(), baseUrl.trim() || undefined, modelName.trim() || undefined)
   }
 
@@ -1629,7 +1636,7 @@ function ModelConfigModal({
                     {selectedModel.provider} • {AI_PROVIDER_CONFIG[selectedModel.provider]?.defaultModel || selectedModel.id}
                   </div>
                 </div>
-                {AI_PROVIDER_CONFIG[selectedModel.provider] && (
+                {AI_PROVIDER_CONFIG[selectedModel.provider]?.apiUrl && (
                   <a
                     href={AI_PROVIDER_CONFIG[selectedModel.provider].apiUrl}
                     target="_blank"
@@ -1657,24 +1664,37 @@ function ModelConfigModal({
                 </div>
               )}
 
-              {/* API Key */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#EAECEF' }}>
-                  <svg className="w-4 h-4" style={{ color: '#A78BFA' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
-                  API Key *
-                </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={t('enterAPIKey', language)}
-                  className="w-full px-4 py-3 rounded-xl"
-                  style={{ background: '#0B0E11', border: '1px solid #2B3139', color: '#EAECEF' }}
-                  required
-                />
-              </div>
+              {/* API Key (hidden for claude-code) */}
+              {isClaudeCode ? (
+                <div className="p-4 rounded-xl" style={{ background: 'rgba(14, 203, 129, 0.1)', border: '1px solid rgba(14, 203, 129, 0.3)' }}>
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '16px' }}>&#x2705;</span>
+                    <div className="text-sm" style={{ color: '#0ECB81' }}>
+                      {language === 'zh'
+                        ? 'Claude Code CLI 使用本地已认证的会话，无需 API Key。请确保服务器上已安装并登录 claude CLI。'
+                        : 'Claude Code CLI uses your locally authenticated session. No API key needed. Make sure the claude CLI is installed and logged in on the server.'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#EAECEF' }}>
+                    <svg className="w-4 h-4" style={{ color: '#A78BFA' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    API Key *
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder={t('enterAPIKey', language)}
+                    className="w-full px-4 py-3 rounded-xl"
+                    style={{ background: '#0B0E11', border: '1px solid #2B3139', color: '#EAECEF' }}
+                    required
+                  />
+                </div>
+              )}
 
               {/* Custom Base URL */}
               <div className="space-y-2">
@@ -1738,7 +1758,7 @@ function ModelConfigModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedModel || !apiKey.trim()}
+                  disabled={!selectedModel || (!isClaudeCode && !apiKey.trim())}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: '#8B5CF6', color: '#fff' }}
                 >
