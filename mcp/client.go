@@ -219,6 +219,14 @@ func (client *Client) buildMCPRequestBody(systemPrompt, userPrompt string) map[s
 	} else {
 		requestBody["max_tokens"] = client.MaxTokens
 	}
+
+	// Disable thinking mode for Qwen models (saves tokens, faster responses)
+	if strings.Contains(strings.ToLower(client.Model), "qwen") {
+		requestBody["chat_template_kwargs"] = map[string]any{
+			"enable_thinking": false,
+		}
+	}
+
 	return requestBody
 }
 

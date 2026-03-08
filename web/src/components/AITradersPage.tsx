@@ -101,6 +101,11 @@ const AI_PROVIDER_CONFIG: Record<string, {
     apiUrl: '',
     apiName: 'Claude Code CLI',
   },
+  custom: {
+    defaultModel: '',
+    apiUrl: '',
+    apiName: 'Custom API',
+  },
 }
 
 interface AITradersPageProps {
