@@ -218,6 +218,7 @@ func (client *Client) buildMCPRequestBody(systemPrompt, userPrompt string) map[s
 		requestBody["max_completion_tokens"] = client.MaxTokens
 	} else {
 		requestBody["max_tokens"] = client.MaxTokens
+		client.logger.Infof("🔧 [MCP] Setting max_tokens=%d for provider=%s model=%s", client.MaxTokens, client.Provider, client.Model)
 	}
 
 	// Disable thinking mode for Qwen models (saves tokens, faster responses)
