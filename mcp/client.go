@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -17,7 +18,7 @@ const (
 )
 
 var (
-	DefaultTimeout = 120 * time.Second
+	DefaultTimeout = 300 * time.Second
 
 	MaxRetryTimes = 3
 
@@ -316,6 +317,10 @@ func (client *Client) call(systemPrompt, userPrompt string) (string, error) {
 		return "", err
 	}
 
+	// Log full request details for debugging
+	client.logger.Debugf("📋 [MCP %s] Full request body (%d bytes):\n%s", client.String(), len(jsonData), string(jsonData))
+	client.logger.Infof("📋 [MCP %s] Request body size: %d bytes", client.String(), len(jsonData))
+
 	// Step 3: Build URL (via hooks for dynamic dispatch)
 	url := client.hooks.buildUrl()
 	client.logger.Infof("📡 [MCP %s] Request URL: %s", client.String(), url)
@@ -339,7 +344,16 @@ func (client *Client) call(systemPrompt, userPrompt string) (string, error) {
 		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 
-	// Step 7: Check HTTP status code (fixed logic)
+	// Log response details
+	client.logger.Infof("📋 [MCP %s] Response status: %d, body size: %d bytes", client.String(), resp.StatusCode, len(body))
+	client.logger.Debugf("📋 [MCP %s] Response body:\n%s", client.String(), string(body))
+
+	// Step 7: Handle async job response (HTTP 202)
+	if resp.StatusCode == http.StatusAccepted {
+		return client.pollAsyncJob(body, url)
+	}
+
+	// Step 7b: Check HTTP status code (fixed logic)
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("API returned error (status %d): %s", resp.StatusCode, string(body))
 	}
@@ -351,6 +365,92 @@ func (client *Client) call(systemPrompt, userPrompt string) (string, error) {
 	}
 
 	return result, nil
+}
+
+// pollAsyncJob handles HTTP 202 async job responses by polling until completion
+func (client *Client) pollAsyncJob(body []byte, requestURL string) (string, error) {
+	var asyncResp struct {
+		JobID   string `json:"job_id"`
+		Status  string `json:"status"`
+		PollURL string `json:"poll_url"`
+	}
+	if err := json.Unmarshal(body, &asyncResp); err != nil || asyncResp.PollURL == "" {
+		return "", fmt.Errorf("API returned 202 but failed to parse async job response: %s", string(body))
+	}
+
+	// Build full poll URL from relative poll_url
+	baseURL := requestURL
+	if idx := strings.Index(baseURL, "/v1/"); idx != -1 {
+		baseURL = baseURL[:idx]
+	}
+	pollURL := baseURL + asyncResp.PollURL
+
+	client.logger.Infof("⏳ [MCP %s] Async job queued: %s, polling: %s", client.String(), asyncResp.JobID, pollURL)
+
+	// Use a separate HTTP client with short timeout for polling
+	pollClient := &http.Client{Timeout: 30 * time.Second}
+
+	// Poll with backoff until timeout
+	pollInterval := 2 * time.Second
+	maxPollInterval := 10 * time.Second
+	deadline := time.Now().Add(client.config.Timeout)
+
+	for time.Now().Before(deadline) {
+		time.Sleep(pollInterval)
+
+		req, err := http.NewRequest("GET", pollURL, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create poll request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		client.hooks.setAuthHeader(req.Header)
+
+		pollResp, err := pollClient.Do(req)
+		if err != nil {
+			client.logger.Warnf("⚠️ [MCP] Poll request failed: %v, retrying...", err)
+			pollInterval = min(pollInterval*2, maxPollInterval)
+			continue
+		}
+
+		pollBody, err := io.ReadAll(pollResp.Body)
+		pollResp.Body.Close()
+		if err != nil {
+			client.logger.Warnf("⚠️ [MCP] Failed to read poll response: %v, retrying...", err)
+			continue
+		}
+
+		var jobStatus struct {
+			JobID  string          `json:"job_id"`
+			Status string          `json:"status"`
+			Result json.RawMessage `json:"result"`
+			Error  string          `json:"error"`
+		}
+		if err := json.Unmarshal(pollBody, &jobStatus); err != nil {
+			client.logger.Warnf("⚠️ [MCP] Failed to parse poll response: %v, retrying...", err)
+			continue
+		}
+
+		client.logger.Infof("⏳ [MCP %s] Job %s status: %s", client.String(), asyncResp.JobID, jobStatus.Status)
+
+		switch jobStatus.Status {
+		case "completed":
+			client.logger.Infof("✅ [MCP %s] Async job completed", client.String())
+			if len(jobStatus.Result) == 0 {
+				return "", fmt.Errorf("async job completed but result is empty")
+			}
+			// Parse the result as a standard API response
+			return client.hooks.parseMCPResponse(jobStatus.Result)
+
+		case "failed", "error":
+			return "", fmt.Errorf("async job failed: %s", jobStatus.Error)
+
+		default:
+			// Still pending/running, increase interval with backoff
+			pollInterval = min(pollInterval*3/2, maxPollInterval)
+		}
+	}
+
+	return "", fmt.Errorf("async job %s timed out after %v", asyncResp.JobID, client.config.Timeout)
 }
 
 func (client *Client) String() string {
@@ -552,4 +652,86 @@ func (client *Client) buildRequestBodyFromRequest(req *Request) map[string]any {
 	}
 
 	return requestBody
+}
+
+// CallWithMessagesStream calls AI API with streaming enabled.
+// Each content chunk is passed to the callback as it arrives.
+// Returns the full accumulated response and any error.
+func (client *Client) CallWithMessagesStream(systemPrompt, userPrompt string, callback StreamCallback) (string, error) {
+	if client.APIKey == "" {
+		return "", fmt.Errorf("AI API key not set, please call SetAPIKey first")
+	}
+
+	// Build request body with stream enabled
+	requestBody := client.hooks.buildMCPRequestBody(systemPrompt, userPrompt)
+	requestBody["stream"] = true
+
+	jsonData, err := client.hooks.marshalRequestBody(requestBody)
+	if err != nil {
+		return "", err
+	}
+
+	url := client.hooks.buildUrl()
+	client.logger.Infof("📡 [MCP %s] Streaming request URL: %s", client.String(), url)
+
+	req, err := client.hooks.buildRequest(url, jsonData)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("API returned error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// Parse SSE stream (OpenAI-compatible format)
+	var fullResponse strings.Builder
+	scanner := bufio.NewScanner(resp.Body)
+	// Increase scanner buffer for large chunks
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			break
+		}
+
+		var chunk struct {
+			Choices []struct {
+				Delta struct {
+					Content string `json:"content"`
+				} `json:"delta"`
+			} `json:"choices"`
+		}
+
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			continue
+		}
+
+		if len(chunk.Choices) > 0 && chunk.Choices[0].Delta.Content != "" {
+			content := chunk.Choices[0].Delta.Content
+			fullResponse.WriteString(content)
+			if callback != nil {
+				callback(content)
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fullResponse.String(), fmt.Errorf("stream read error: %w", err)
+	}
+
+	return fullResponse.String(), nil
 }

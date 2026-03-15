@@ -5,11 +5,15 @@ import (
 	"time"
 )
 
+// StreamCallback is called with each chunk of streamed AI response content
+type StreamCallback func(chunk string)
+
 // AIClient public AI client interface (for external use)
 type AIClient interface {
 	SetAPIKey(apiKey string, customURL string, customModel string)
 	SetTimeout(timeout time.Duration)
 	CallWithMessages(systemPrompt, userPrompt string) (string, error)
+	CallWithMessagesStream(systemPrompt, userPrompt string, callback StreamCallback) (string, error)
 	CallWithRequest(req *Request) (string, error) // Builder pattern API (supports advanced features)
 }
 

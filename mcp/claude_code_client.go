@@ -135,3 +135,15 @@ func filterEnv(env []string, key string) []string {
 	}
 	return result
 }
+
+// CallWithMessagesStream falls back to non-streaming for Claude Code CLI.
+func (c *ClaudeCodeClient) CallWithMessagesStream(systemPrompt, userPrompt string, callback StreamCallback) (string, error) {
+	result, err := c.CallWithMessages(systemPrompt, userPrompt)
+	if err != nil {
+		return "", err
+	}
+	if callback != nil {
+		callback(result)
+	}
+	return result, nil
+}
