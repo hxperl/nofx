@@ -42,6 +42,14 @@ import { DeepVoidBackground } from '../components/DeepVoidBackground'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
+// Approximate token count: ~4 chars/token for English/code, ~2 chars/token for CJK
+function estimateTokens(text: string): number {
+  if (!text) return 0
+  const cjkChars = (text.match(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/g) || []).length
+  const otherChars = text.length - cjkChars
+  return Math.ceil(otherChars / 4 + cjkChars / 2)
+}
+
 export function StrategyStudioPage() {
   const { token } = useAuth()
   const { language } = useLanguage()
@@ -1021,7 +1029,7 @@ export function StrategyStudioPage() {
                           <span className="text-xs font-medium text-nofx-text">{t('systemPrompt')}</span>
                         </div>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-nofx-bg-lighter text-nofx-text-muted">
-                          {promptPreview.system_prompt.length.toLocaleString()} chars
+                          {promptPreview.system_prompt.length.toLocaleString()} chars | ~{estimateTokens(promptPreview.system_prompt).toLocaleString()} tokens
                         </span>
                       </div>
                       <pre
@@ -1118,9 +1126,17 @@ export function StrategyStudioPage() {
                         {/* User Prompt Input */}
                         {aiTestResult.user_prompt && (
                           <div>
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <Terminal className="w-3 h-3 text-blue-400" />
-                              <span className="text-xs font-medium text-nofx-text">{t('userPrompt')} (Input)</span>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <Terminal className="w-3 h-3 text-blue-400" />
+                                <span className="text-xs font-medium text-nofx-text">{t('userPrompt')} (Input)</span>
+                              </div>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-nofx-bg-lighter text-nofx-text-muted">
+                                ~{estimateTokens(aiTestResult.user_prompt).toLocaleString()} tokens
+                                {aiTestResult.system_prompt && (
+                                  <> | {language === 'zh' ? '总输入' : 'Total'}: ~{(estimateTokens(aiTestResult.system_prompt) + estimateTokens(aiTestResult.user_prompt)).toLocaleString()} tokens</>
+                                )}
+                              </span>
                             </div>
                             <pre
                               className="p-2 rounded-lg text-[10px] font-mono overflow-auto bg-nofx-bg border border-nofx-gold/20 text-nofx-text"
