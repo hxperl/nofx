@@ -67,7 +67,7 @@ export function RegisterPage() {
     }
 
     if (betaMode && !betaCode.trim()) {
-      setError('内测期间，注册需要提供内测码')
+      setError('Beta access code required during beta period')
       return
     }
 

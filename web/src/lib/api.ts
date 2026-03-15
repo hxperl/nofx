@@ -62,7 +62,7 @@ async function handleJSONResponse<T>(res: Response): Promise<T> {
     } catch {
       /* ignore JSON parse errors */
     }
-    throw new Error(message || '请求失败')
+    throw new Error(message || 'Request failed')
   }
   if (!text) {
     return {} as T
@@ -74,14 +74,14 @@ export const api = {
   // AI交易员管理接口
   async getTraders(): Promise<TraderInfo[]> {
     const result = await httpClient.get<TraderInfo[]>(`${API_BASE}/my-traders`)
-    if (!result.success) throw new Error('获取trader列表失败')
+    if (!result.success) throw new Error('Failed to get trader list')
     return Array.isArray(result.data) ? result.data : []
   },
 
   // 获取公开的交易员列表（无需认证）
   async getPublicTraders(): Promise<any[]> {
     const result = await httpClient.get<any[]>(`${API_BASE}/traders`)
-    if (!result.success) throw new Error('获取公开trader列表失败')
+    if (!result.success) throw new Error('Failed to get public trader list')
     return result.data!
   },
 
@@ -90,25 +90,25 @@ export const api = {
       `${API_BASE}/traders`,
       request
     )
-    if (!result.success) throw new Error('创建交易员失败')
+    if (!result.success) throw new Error('Failed to create trader')
     return result.data!
   },
 
   async deleteTrader(traderId: string): Promise<void> {
     const result = await httpClient.delete(`${API_BASE}/traders/${traderId}`)
-    if (!result.success) throw new Error('删除交易员失败')
+    if (!result.success) throw new Error('Failed to delete trader')
   },
 
   async startTrader(traderId: string): Promise<void> {
     const result = await httpClient.post(
       `${API_BASE}/traders/${traderId}/start`
     )
-    if (!result.success) throw new Error('启动交易员失败')
+    if (!result.success) throw new Error('Failed to start trader')
   },
 
   async stopTrader(traderId: string): Promise<void> {
     const result = await httpClient.post(`${API_BASE}/traders/${traderId}/stop`)
-    if (!result.success) throw new Error('停止交易员失败')
+    if (!result.success) throw new Error('Failed to stop trader')
   },
 
   async toggleCompetition(traderId: string, showInCompetition: boolean): Promise<void> {
@@ -116,7 +116,7 @@ export const api = {
       `${API_BASE}/traders/${traderId}/competition`,
       { show_in_competition: showInCompetition }
     )
-    if (!result.success) throw new Error('更新竞技场显示设置失败')
+    if (!result.success) throw new Error('Failed to update arena display settings')
   },
 
   async closePosition(traderId: string, symbol: string, side: string): Promise<{ message: string }> {
@@ -124,7 +124,7 @@ export const api = {
       `${API_BASE}/traders/${traderId}/close-position`,
       { symbol, side }
     )
-    if (!result.success) throw new Error('平仓失败')
+    if (!result.success) throw new Error('Failed to close position')
     return result.data!
   },
 
@@ -136,14 +136,14 @@ export const api = {
       `${API_BASE}/traders/${traderId}/prompt`,
       { custom_prompt: customPrompt }
     )
-    if (!result.success) throw new Error('更新自定义策略失败')
+    if (!result.success) throw new Error('Failed to update custom prompt')
   },
 
   async getTraderConfig(traderId: string): Promise<TraderConfigData> {
     const result = await httpClient.get<TraderConfigData>(
       `${API_BASE}/traders/${traderId}/config`
     )
-    if (!result.success) throw new Error('获取交易员配置失败')
+    if (!result.success) throw new Error('Failed to get trader config')
     return result.data!
   },
 
@@ -155,14 +155,14 @@ export const api = {
       `${API_BASE}/traders/${traderId}`,
       request
     )
-    if (!result.success) throw new Error('更新交易员失败')
+    if (!result.success) throw new Error('Failed to update trader')
     return result.data!
   },
 
   // AI模型配置接口
   async getModelConfigs(): Promise<AIModel[]> {
     const result = await httpClient.get<AIModel[]>(`${API_BASE}/models`)
-    if (!result.success) throw new Error('获取模型配置失败')
+    if (!result.success) throw new Error('Failed to get model config')
     return Array.isArray(result.data) ? result.data : []
   },
 
@@ -171,13 +171,13 @@ export const api = {
     const result = await httpClient.get<AIModel[]>(
       `${API_BASE}/supported-models`
     )
-    if (!result.success) throw new Error('获取支持的模型失败')
+    if (!result.success) throw new Error('Failed to get supported models')
     return result.data!
   },
 
   async getPromptTemplates(): Promise<string[]> {
     const res = await fetch(`${API_BASE}/prompt-templates`)
-    if (!res.ok) throw new Error('获取提示词模板失败')
+    if (!res.ok) throw new Error('Failed to get prompt templates')
     const data = await res.json()
     if (Array.isArray(data.templates)) {
       return data.templates.map((item: { name: string }) => item.name)
@@ -192,7 +192,7 @@ export const api = {
     if (!config.transport_encryption) {
       // 传输加密禁用时，直接发送明文
       const result = await httpClient.put(`${API_BASE}/models`, request)
-      if (!result.success) throw new Error('更新模型配置失败')
+      if (!result.success) throw new Error('Failed to update model config')
       return
     }
 
@@ -215,13 +215,13 @@ export const api = {
 
     // 发送加密数据
     const result = await httpClient.put(`${API_BASE}/models`, encryptedPayload)
-    if (!result.success) throw new Error('更新模型配置失败')
+    if (!result.success) throw new Error('Failed to update model config')
   },
 
   // 交易所配置接口
   async getExchangeConfigs(): Promise<Exchange[]> {
     const result = await httpClient.get<Exchange[]>(`${API_BASE}/exchanges`)
-    if (!result.success) throw new Error('获取交易所配置失败')
+    if (!result.success) throw new Error('Failed to get exchange config')
     return result.data!
   },
 
@@ -230,7 +230,7 @@ export const api = {
     const result = await httpClient.get<Exchange[]>(
       `${API_BASE}/supported-exchanges`
     )
-    if (!result.success) throw new Error('获取支持的交易所失败')
+    if (!result.success) throw new Error('Failed to get supported exchanges')
     return result.data!
   },
 
@@ -238,13 +238,13 @@ export const api = {
     request: UpdateExchangeConfigRequest
   ): Promise<void> {
     const result = await httpClient.put(`${API_BASE}/exchanges`, request)
-    if (!result.success) throw new Error('更新交易所配置失败')
+    if (!result.success) throw new Error('Failed to update exchange config')
   },
 
   // 创建新的交易所账户
   async createExchange(request: CreateExchangeRequest): Promise<{ id: string }> {
     const result = await httpClient.post<{ id: string }>(`${API_BASE}/exchanges`, request)
-    if (!result.success) throw new Error('创建交易所账户失败')
+    if (!result.success) throw new Error('Failed to create exchange account')
     return result.data!
   },
 
@@ -256,7 +256,7 @@ export const api = {
     if (!config.transport_encryption) {
       // 传输加密禁用时，直接发送明文
       const result = await httpClient.post<{ id: string }>(`${API_BASE}/exchanges`, request)
-      if (!result.success) throw new Error('创建交易所账户失败')
+      if (!result.success) throw new Error('Failed to create exchange account')
       return result.data!
     }
 
@@ -282,14 +282,14 @@ export const api = {
       `${API_BASE}/exchanges`,
       encryptedPayload
     )
-    if (!result.success) throw new Error('创建交易所账户失败')
+    if (!result.success) throw new Error('Failed to create exchange account')
     return result.data!
   },
 
   // 删除交易所账户
   async deleteExchange(exchangeId: string): Promise<void> {
     const result = await httpClient.delete(`${API_BASE}/exchanges/${exchangeId}`)
-    if (!result.success) throw new Error('删除交易所账户失败')
+    if (!result.success) throw new Error('Failed to delete exchange account')
   },
 
   // 使用加密传输更新交易所配置（自动检测是否启用加密）
@@ -302,7 +302,7 @@ export const api = {
     if (!config.transport_encryption) {
       // 传输加密禁用时，直接发送明文
       const result = await httpClient.put(`${API_BASE}/exchanges`, request)
-      if (!result.success) throw new Error('更新交易所配置失败')
+      if (!result.success) throw new Error('Failed to update exchange config')
       return
     }
 
@@ -328,7 +328,7 @@ export const api = {
       `${API_BASE}/exchanges`,
       encryptedPayload
     )
-    if (!result.success) throw new Error('更新交易所配置失败')
+    if (!result.success) throw new Error('Failed to update exchange config')
   },
 
   // 获取系统状态（支持trader_id）
@@ -337,7 +337,7 @@ export const api = {
       ? `${API_BASE}/status?trader_id=${traderId}`
       : `${API_BASE}/status`
     const result = await httpClient.get<SystemStatus>(url)
-    if (!result.success) throw new Error('获取系统状态失败')
+    if (!result.success) throw new Error('Failed to get system status')
     return result.data!
   },
 
@@ -347,7 +347,7 @@ export const api = {
       ? `${API_BASE}/account?trader_id=${traderId}`
       : `${API_BASE}/account`
     const result = await httpClient.get<AccountInfo>(url)
-    if (!result.success) throw new Error('获取账户信息失败')
+    if (!result.success) throw new Error('Failed to get account info')
     console.log('Account data fetched:', result.data)
     return result.data!
   },
@@ -358,7 +358,7 @@ export const api = {
       ? `${API_BASE}/positions?trader_id=${traderId}`
       : `${API_BASE}/positions`
     const result = await httpClient.get<Position[]>(url)
-    if (!result.success) throw new Error('获取持仓列表失败')
+    if (!result.success) throw new Error('Failed to get positions')
     return result.data!
   },
 
@@ -368,7 +368,7 @@ export const api = {
       ? `${API_BASE}/decisions?trader_id=${traderId}`
       : `${API_BASE}/decisions`
     const result = await httpClient.get<DecisionRecord[]>(url)
-    if (!result.success) throw new Error('获取决策日志失败')
+    if (!result.success) throw new Error('Failed to get decisions')
     return result.data!
   },
 
@@ -386,7 +386,7 @@ export const api = {
     const result = await httpClient.get<DecisionRecord[]>(
       `${API_BASE}/decisions/latest?${params}`
     )
-    if (!result.success) throw new Error('获取最新决策失败')
+    if (!result.success) throw new Error('Failed to get latest decisions')
     return result.data!
   },
 
@@ -396,7 +396,7 @@ export const api = {
       ? `${API_BASE}/statistics?trader_id=${traderId}`
       : `${API_BASE}/statistics`
     const result = await httpClient.get<Statistics>(url)
-    if (!result.success) throw new Error('获取统计信息失败')
+    if (!result.success) throw new Error('Failed to get statistics')
     return result.data!
   },
 
@@ -406,7 +406,7 @@ export const api = {
       ? `${API_BASE}/equity-history?trader_id=${traderId}`
       : `${API_BASE}/equity-history`
     const result = await httpClient.get<any[]>(url)
-    if (!result.success) throw new Error('获取历史数据失败')
+    if (!result.success) throw new Error('Failed to get equity history')
     return result.data!
   },
 
@@ -418,14 +418,14 @@ export const api = {
       `${API_BASE}/equity-history-batch`,
       { trader_ids: traderIds, hours: hours || 0 }
     )
-    if (!result.success) throw new Error('获取批量历史数据失败')
+    if (!result.success) throw new Error('Failed to get batch equity history')
     return result.data!
   },
 
   // 获取前5名交易员数据（无需认证）
   async getTopTraders(): Promise<any[]> {
     const result = await httpClient.get<any[]>(`${API_BASE}/top-traders`)
-    if (!result.success) throw new Error('获取前5名交易员失败')
+    if (!result.success) throw new Error('Failed to get top traders')
     return result.data!
   },
 
@@ -434,7 +434,7 @@ export const api = {
     const result = await httpClient.get<any>(
       `${API_BASE}/trader/${traderId}/config`
     )
-    if (!result.success) throw new Error('获取公开交易员配置失败')
+    if (!result.success) throw new Error('Failed to get public trader config')
     return result.data!
   },
 
@@ -443,7 +443,7 @@ export const api = {
     const result = await httpClient.get<CompetitionData>(
       `${API_BASE}/competition`
     )
-    if (!result.success) throw new Error('获取竞赛数据失败')
+    if (!result.success) throw new Error('Failed to get competition data')
     return result.data!
   },
 
@@ -456,7 +456,7 @@ export const api = {
       public_ip: string
       message: string
     }>(`${API_BASE}/server-ip`)
-    if (!result.success) throw new Error('获取服务器IP失败')
+    if (!result.success) throw new Error('Failed to get server IP')
     return result.data!
   },
 
@@ -632,13 +632,13 @@ export const api = {
       try {
         const data = text ? JSON.parse(text) : null
         throw new Error(
-          data?.error || data?.message || text || '导出失败，请稍后再试'
+          data?.error || data?.message || text || 'Export failed, please try again later'
         )
       } catch (err) {
         if (err instanceof Error && err.message) {
           throw err
         }
-        throw new Error(text || '导出失败，请稍后再试')
+        throw new Error(text || 'Export failed, please try again later')
       }
     }
     return res.blob()
@@ -647,26 +647,26 @@ export const api = {
   // Strategy APIs
   async getStrategies(): Promise<Strategy[]> {
     const result = await httpClient.get<{ strategies: Strategy[] }>(`${API_BASE}/strategies`)
-    if (!result.success) throw new Error('获取策略列表失败')
+    if (!result.success) throw new Error('Failed to get strategy list')
     const strategies = result.data?.strategies
     return Array.isArray(strategies) ? strategies : []
   },
 
   async getStrategy(strategyId: string): Promise<Strategy> {
     const result = await httpClient.get<Strategy>(`${API_BASE}/strategies/${strategyId}`)
-    if (!result.success) throw new Error('获取策略失败')
+    if (!result.success) throw new Error('Failed to get strategy')
     return result.data!
   },
 
   async getActiveStrategy(): Promise<Strategy> {
     const result = await httpClient.get<Strategy>(`${API_BASE}/strategies/active`)
-    if (!result.success) throw new Error('获取激活策略失败')
+    if (!result.success) throw new Error('Failed to get active strategy')
     return result.data!
   },
 
   async getDefaultStrategyConfig(): Promise<StrategyConfig> {
     const result = await httpClient.get<StrategyConfig>(`${API_BASE}/strategies/default-config`)
-    if (!result.success) throw new Error('获取默认策略配置失败')
+    if (!result.success) throw new Error('Failed to get default strategy config')
     return result.data!
   },
 
@@ -676,7 +676,7 @@ export const api = {
     config: StrategyConfig
   }): Promise<Strategy> {
     const result = await httpClient.post<Strategy>(`${API_BASE}/strategies`, data)
-    if (!result.success) throw new Error('创建策略失败')
+    if (!result.success) throw new Error('Failed to create strategy')
     return result.data!
   },
 
@@ -689,54 +689,54 @@ export const api = {
     }
   ): Promise<Strategy> {
     const result = await httpClient.put<Strategy>(`${API_BASE}/strategies/${strategyId}`, data)
-    if (!result.success) throw new Error('更新策略失败')
+    if (!result.success) throw new Error('Failed to update strategy')
     return result.data!
   },
 
   async deleteStrategy(strategyId: string): Promise<void> {
     const result = await httpClient.delete(`${API_BASE}/strategies/${strategyId}`)
-    if (!result.success) throw new Error('删除策略失败')
+    if (!result.success) throw new Error('Failed to delete strategy')
   },
 
   async activateStrategy(strategyId: string): Promise<Strategy> {
     const result = await httpClient.post<Strategy>(`${API_BASE}/strategies/${strategyId}/activate`)
-    if (!result.success) throw new Error('激活策略失败')
+    if (!result.success) throw new Error('Failed to activate strategy')
     return result.data!
   },
 
   async duplicateStrategy(strategyId: string): Promise<Strategy> {
     const result = await httpClient.post<Strategy>(`${API_BASE}/strategies/${strategyId}/duplicate`)
-    if (!result.success) throw new Error('复制策略失败')
+    if (!result.success) throw new Error('Failed to duplicate strategy')
     return result.data!
   },
 
   // Debate Arena APIs
   async getDebates(): Promise<DebateSession[]> {
     const result = await httpClient.get<DebateSession[]>(`${API_BASE}/debates`)
-    if (!result.success) throw new Error('获取辩论列表失败')
+    if (!result.success) throw new Error('Failed to get debate list')
     return Array.isArray(result.data) ? result.data : []
   },
 
   async getDebate(debateId: string): Promise<DebateSessionWithDetails> {
     const result = await httpClient.get<DebateSessionWithDetails>(`${API_BASE}/debates/${debateId}`)
-    if (!result.success) throw new Error('获取辩论详情失败')
+    if (!result.success) throw new Error('Failed to get debate details')
     return result.data!
   },
 
   async createDebate(request: CreateDebateRequest): Promise<DebateSessionWithDetails> {
     const result = await httpClient.post<DebateSessionWithDetails>(`${API_BASE}/debates`, request)
-    if (!result.success) throw new Error('创建辩论失败')
+    if (!result.success) throw new Error('Failed to create debate')
     return result.data!
   },
 
   async startDebate(debateId: string): Promise<void> {
     const result = await httpClient.post(`${API_BASE}/debates/${debateId}/start`)
-    if (!result.success) throw new Error('启动辩论失败')
+    if (!result.success) throw new Error('Failed to start debate')
   },
 
   async cancelDebate(debateId: string): Promise<void> {
     const result = await httpClient.post(`${API_BASE}/debates/${debateId}/cancel`)
-    if (!result.success) throw new Error('取消辩论失败')
+    if (!result.success) throw new Error('Failed to cancel debate')
   },
 
   async executeDebate(debateId: string, traderId: string): Promise<DebateSessionWithDetails> {
@@ -744,30 +744,30 @@ export const api = {
       `${API_BASE}/debates/${debateId}/execute`,
       { trader_id: traderId }
     )
-    if (!result.success) throw new Error('执行交易失败')
+    if (!result.success) throw new Error('Failed to execute trade')
     return result.data!.session
   },
 
   async deleteDebate(debateId: string): Promise<void> {
     const result = await httpClient.delete(`${API_BASE}/debates/${debateId}`)
-    if (!result.success) throw new Error('删除辩论失败')
+    if (!result.success) throw new Error('Failed to delete debate')
   },
 
   async getDebateMessages(debateId: string): Promise<DebateMessage[]> {
     const result = await httpClient.get<DebateMessage[]>(`${API_BASE}/debates/${debateId}/messages`)
-    if (!result.success) throw new Error('获取辩论消息失败')
+    if (!result.success) throw new Error('Failed to get debate messages')
     return result.data!
   },
 
   async getDebateVotes(debateId: string): Promise<DebateVote[]> {
     const result = await httpClient.get<DebateVote[]>(`${API_BASE}/debates/${debateId}/votes`)
-    if (!result.success) throw new Error('获取辩论投票失败')
+    if (!result.success) throw new Error('Failed to get debate votes')
     return result.data!
   },
 
   async getDebatePersonalities(): Promise<DebatePersonalityInfo[]> {
     const result = await httpClient.get<DebatePersonalityInfo[]>(`${API_BASE}/debates/personalities`)
-    if (!result.success) throw new Error('获取AI性格列表失败')
+    if (!result.success) throw new Error('Failed to get AI personality list')
     return result.data!
   },
 
@@ -782,7 +782,7 @@ export const api = {
     const result = await httpClient.get<PositionHistoryResponse>(
       `${API_BASE}/positions/history?trader_id=${traderId}&limit=${limit}`
     )
-    if (!result.success) throw new Error('获取历史仓位失败')
+    if (!result.success) throw new Error('Failed to get position history')
     return result.data!
   },
 }

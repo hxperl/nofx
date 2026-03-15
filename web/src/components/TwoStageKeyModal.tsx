@@ -105,14 +105,14 @@ export function TwoStageKeyModal({
             ...obfuscationLog,
             `Stage 1: ${new Date().toISOString()} - Auto copied obfuscation`,
           ])
-          toast.success('已复制混淆字符串到剪贴板')
+          toast.success('Copied obfuscated string to clipboard')
         } catch {
           setClipboardStatus('failed')
           setObfuscationLog([
             ...obfuscationLog,
             `Stage 1: ${new Date().toISOString()} - Auto copy failed, manual required`,
           ])
-          toast.error('复制失败，请手动复制混淆字符串')
+          toast.error('Copy failed, please copy manually')
         }
       } else {
         setClipboardStatus('failed')
@@ -120,7 +120,7 @@ export function TwoStageKeyModal({
           ...obfuscationLog,
           `Stage 1: ${new Date().toISOString()} - Clipboard API not available`,
         ])
-        toast('当前浏览器不支持自动复制，请手动复制')
+        toast('Browser does not support auto-copy, please copy manually')
       }
 
       setTimeout(() => {

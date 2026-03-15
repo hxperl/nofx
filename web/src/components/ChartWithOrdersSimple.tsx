@@ -72,12 +72,12 @@ export function ChartWithOrdersSimple({
         <div className="flex items-center gap-3">
           <span className="text-xl">📈</span>
           <h3 className="text-lg font-bold" style={{ color: '#EAECEF' }}>
-            {symbol} {interval} (测试模式)
+            {symbol} {interval} (Test Mode)
           </h3>
         </div>
         {loading && (
           <div className="text-sm" style={{ color: '#848E9C' }}>
-            加载中...
+            Loading...
           </div>
         )}
       </div>
@@ -92,25 +92,25 @@ export function ChartWithOrdersSimple({
         ) : (
           <>
             <div className="p-4 rounded" style={{ background: '#1E2329', border: '1px solid #2B3139' }}>
-              <div className="text-sm mb-2" style={{ color: '#848E9C' }}>币安K线数据</div>
+              <div className="text-sm mb-2" style={{ color: '#848E9C' }}>Binance K-line Data</div>
               <div className="text-2xl font-bold" style={{ color: '#0ECB81' }}>
-                {klineCount} 根K线
+                {klineCount} K-lines
               </div>
             </div>
 
             {traderID && (
               <div className="p-4 rounded" style={{ background: '#1E2329', border: '1px solid #2B3139' }}>
-                <div className="text-sm mb-2" style={{ color: '#848E9C' }}>历史订单数据</div>
+                <div className="text-sm mb-2" style={{ color: '#848E9C' }}>Historical Orders</div>
                 <div className="text-2xl font-bold" style={{ color: '#F0B90B' }}>
-                  {orderCount} 笔订单
+                  {orderCount} orders
                 </div>
               </div>
             )}
 
             <div className="p-4 rounded" style={{ background: '#1E2329', border: '1px solid #2B3139' }}>
-              <div className="text-sm mb-2" style={{ color: '#848E9C' }}>状态</div>
+              <div className="text-sm mb-2" style={{ color: '#848E9C' }}>Status</div>
               <div className="text-lg" style={{ color: '#EAECEF' }}>
-                ✅ 数据获取正常，图表组件开发中
+                ✅ Data fetched successfully, chart component in development
               </div>
             </div>
           </>

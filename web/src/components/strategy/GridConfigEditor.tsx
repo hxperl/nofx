@@ -518,12 +518,12 @@ export function GridConfigEditor({
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded" style={{ background: '#0ECB8115', border: '1px solid #0ECB8130' }}>
-                  <span style={{ color: '#0ECB81' }}>偏多/Long Bias: </span>
-                  <span style={{ color: '#EAECEF' }}>{Math.round((config.direction_bias_ratio ?? 0.7) * 100)}% 买 + {Math.round((1 - (config.direction_bias_ratio ?? 0.7)) * 100)}% 卖</span>
+                  <span style={{ color: '#0ECB81' }}>Long Bias: </span>
+                  <span style={{ color: '#EAECEF' }}>{Math.round((config.direction_bias_ratio ?? 0.7) * 100)}% Buy + {Math.round((1 - (config.direction_bias_ratio ?? 0.7)) * 100)}% Sell</span>
                 </div>
                 <div className="p-2 rounded" style={{ background: '#F6465D15', border: '1px solid #F6465D30' }}>
-                  <span style={{ color: '#F6465D' }}>偏空/Short Bias: </span>
-                  <span style={{ color: '#EAECEF' }}>{Math.round((1 - (config.direction_bias_ratio ?? 0.7)) * 100)}% 买 + {Math.round((config.direction_bias_ratio ?? 0.7) * 100)}% 卖</span>
+                  <span style={{ color: '#F6465D' }}>Short Bias: </span>
+                  <span style={{ color: '#EAECEF' }}>{Math.round((1 - (config.direction_bias_ratio ?? 0.7)) * 100)}% Buy + {Math.round((config.direction_bias_ratio ?? 0.7) * 100)}% Sell</span>
                 </div>
               </div>
             </div>

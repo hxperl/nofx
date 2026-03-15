@@ -76,14 +76,14 @@ const getQuoteUnit = (exchange: string): string => {
 // 获取成交量数量单位
 const getBaseUnit = (exchange: string, symbol: string): string => {
   if (['alpaca'].includes(exchange)) {
-    return '股'
+    return 'shares'
   }
   if (['forex', 'metals'].includes(exchange)) {
     return ''
   }
   // 加密货币：从 symbol 提取基础资产
   const base = symbol.replace(/USDT$|USD$|BUSD$/, '')
-  return base || '个'
+  return base || 'units'
 }
 
 // 格式化大数字

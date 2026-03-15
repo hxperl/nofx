@@ -256,7 +256,7 @@ export function ExchangeConfigModal({
         toast.success(t('ipCopied', language))
       }
     } catch {
-      toast.error(t('copyIPFailed', language) || `复制失败: ${ip}`)
+      toast.error(t('copyIPFailed', language) || `Copy failed: ${ip}`)
     }
   }
 
@@ -736,7 +736,7 @@ export function ExchangeConfigModal({
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: '#F0B90B', color: '#000' }}
                 >
-                  {isSaving ? (t('saving', language) || '保存中...') : (
+                  {isSaving ? (t('saving', language) || 'Saving...') : (
                     <>{t('saveConfig', language)} <ArrowRight className="w-4 h-4" /></>
                   )}
                 </button>

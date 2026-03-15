@@ -179,7 +179,7 @@ function MessageCard({ msg }: { msg: DebateMessage }) {
           {/* Reasoning/Analysis Section */}
           {parsed.reasoning && (
             <div className="bg-black/20 rounded-lg p-3">
-              <div className="text-xs text-blue-400 font-medium mb-2">💭 思考过程 / Reasoning</div>
+              <div className="text-xs text-blue-400 font-medium mb-2">💭 Reasoning</div>
               <div className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto select-text">
                 {parsed.reasoning}
               </div>
@@ -189,43 +189,43 @@ function MessageCard({ msg }: { msg: DebateMessage }) {
           {/* Decision Section */}
           {msg.decision && (
             <div className="bg-black/20 rounded-lg p-3">
-              <div className="text-xs text-green-400 font-medium mb-2">📊 交易决策 / Decision</div>
+              <div className="text-xs text-green-400 font-medium mb-2">📊 Decision</div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {msg.decision.symbol && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">币种</span>
+                    <span className="text-gray-500">Symbol</span>
                     <span className="text-white font-medium">{msg.decision.symbol}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500">方向</span>
+                  <span className="text-gray-500">Direction</span>
                   <span className={a.color}>{a.label}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">信心</span>
+                  <span className="text-gray-500">Confidence</span>
                   <span className="text-yellow-400">{msg.decision.confidence}%</span>
                 </div>
                 {(msg.decision.leverage ?? 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">杠杆</span>
+                    <span className="text-gray-500">Leverage</span>
                     <span className="text-white">{msg.decision.leverage}x</span>
                   </div>
                 )}
                 {(msg.decision.position_pct ?? 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">仓位</span>
+                    <span className="text-gray-500">Position</span>
                     <span className="text-white">{((msg.decision.position_pct ?? 0) * 100).toFixed(0)}%</span>
                   </div>
                 )}
                 {(msg.decision.stop_loss ?? 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">止损</span>
+                    <span className="text-gray-500">Stop Loss</span>
                     <span className="text-red-400">{((msg.decision.stop_loss ?? 0) * 100).toFixed(1)}%</span>
                   </div>
                 )}
                 {(msg.decision.take_profit ?? 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">止盈</span>
+                    <span className="text-gray-500">Take Profit</span>
                     <span className="text-green-400">{((msg.decision.take_profit ?? 0) * 100).toFixed(1)}%</span>
                   </div>
                 )}
@@ -241,7 +241,7 @@ function MessageCard({ msg }: { msg: DebateMessage }) {
           {/* Full Raw Content (collapsible) */}
           {!parsed.reasoning && (
             <div className="bg-black/20 rounded-lg p-3">
-              <div className="text-xs text-gray-400 font-medium mb-2">📝 完整输出 / Full Output</div>
+              <div className="text-xs text-gray-400 font-medium mb-2">📝 Full Output</div>
               <div className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto select-text">
                 {parsed.fullContent}
               </div>
@@ -251,7 +251,7 @@ function MessageCard({ msg }: { msg: DebateMessage }) {
           {/* Multi-coin decisions if available */}
           {msg.decisions && msg.decisions.length > 1 && (
             <div className="bg-black/20 rounded-lg p-3">
-              <div className="text-xs text-purple-400 font-medium mb-2">🎯 多币种决策 ({msg.decisions.length})</div>
+              <div className="text-xs text-purple-400 font-medium mb-2">🎯 Multi-coin Decisions ({msg.decisions.length})</div>
               <div className="space-y-2">
                 {msg.decisions.map((d, i) => {
                   const da = ACT[d.action] || ACT.wait
@@ -490,20 +490,20 @@ export function DebateArenaPage() {
 
   const onCreate = async (r: CreateDebateRequest) => {
     const d = await api.createDebate(r)
-    notify.success('创建成功')
+    notify.success('Created successfully')
     mutateList()
     setSelectedId(d.id)
   }
 
   const onStart = async (id: string) => {
     await api.startDebate(id)
-    notify.success('已开始')
+    notify.success('Started')
     mutateList(); mutateDetail()
   }
 
   const onDelete = async (id: string) => {
     await api.deleteDebate(id)
-    notify.success('已删除')
+    notify.success('Deleted')
     if (selectedId === id) setSelectedId(null)
     mutateList()
   }
@@ -513,7 +513,7 @@ export function DebateArenaPage() {
     setExecuting(true)
     try {
       await api.executeDebate(execId, traderId)
-      notify.success('已执行')
+      notify.success('Executed')
       mutateDetail(); mutateList()
       setExecId(null); setTraderId('')
     } catch (e: any) { notify.error(e.message) }

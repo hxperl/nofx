@@ -14,18 +14,18 @@ export function LoginRequiredOverlay({ isOpen, onClose, featureName }: LoginRequ
 
   const texts = {
     zh: {
-      title: '系统访问受限',
-      subtitle: featureName ? `访问「${featureName}」需要更高权限` : '此模块需要授权访问',
-      description: '初始化身份验证协议以解锁完整系统功能：AI 交易员配置、策略市场数据流、回测模拟核心。',
+      title: 'System Access Restricted',
+      subtitle: featureName ? `Access to "${featureName}" requires authentication` : 'Authorization required for this module',
+      description: 'Initialize authentication protocol to unlock full system capabilities: AI Trader configuration, Strategy Market data streams, and Backtest Simulation core.',
       benefits: [
-        'AI 交易员控制权',
-        '高频策略核心市场',
-        '历史数据回测引擎',
-        '全系统数据可视化'
+        'AI Trader Controls',
+        'Strategy Core Market',
+        'Historical Backtesting Engine',
+        'System Data Visualization'
       ],
-      login: '执行登录指令',
-      register: '注册新用户 ID',
-      later: '中止操作'
+      login: 'Login',
+      register: 'Register',
+      later: 'Cancel'
     },
     en: {
       title: 'SYSTEM ACCESS DENIED',
@@ -94,7 +94,7 @@ export function LoginRequiredOverlay({ isOpen, onClose, featureName }: LoginRequ
                       <div className="absolute inset-0 bg-red-500/20 blur-xl animate-pulse"></div>
                       <div className="bg-nofx-bg border border-red-500/50 text-red-500 px-4 py-2 flex items-center gap-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                         <AlertTriangle size={18} className="animate-pulse" />
-                        <span className="font-bold tracking-widest text-sm uppercase">{language === 'zh' ? '访问被拒绝' : 'ACCESS DENIED'}</span>
+                        <span className="font-bold tracking-widest text-sm uppercase">{language === 'zh' ? 'Access Denied' : 'ACCESS DENIED'}</span>
                       </div>
                     </div>
                   </div>

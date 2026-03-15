@@ -30,7 +30,7 @@ export function TraderConfigViewModal({
     <div className="flex justify-between items-start py-2 border-b border-[#2B3139] last:border-b-0">
       <span className="text-sm text-[#848E9C] font-medium">{label}</span>
       <span className="text-sm text-[#EAECEF] font-mono text-right">
-        {typeof value === 'boolean' ? (value ? '是' : '否') : value}
+        {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value}
       </span>
     </div>
   )
@@ -50,9 +50,9 @@ export function TraderConfigViewModal({
               className="rounded-lg"
             />
             <div>
-              <h2 className="text-xl font-bold text-[#EAECEF]">交易员配置</h2>
+              <h2 className="text-xl font-bold text-[#EAECEF]">Trader Config</h2>
               <p className="text-sm text-[#848E9C] mt-1">
-                {traderData.trader_name} 的配置信息
+                {traderData.trader_name} Configuration Details
               </p>
             </div>
           </div>
@@ -67,7 +67,7 @@ export function TraderConfigViewModal({
               }
             >
               <span>{traderData.is_running ? '●' : '○'}</span>
-              {traderData.is_running ? '运行中' : '已停止'}
+              {traderData.is_running ? 'Running' : 'Stopped'}
             </div>
             <button
               onClick={onClose}
@@ -83,32 +83,32 @@ export function TraderConfigViewModal({
           {/* Basic Info */}
           <div className="bg-[#0B0E11] border border-[#2B3139] rounded-lg p-5">
             <h3 className="text-lg font-semibold text-[#EAECEF] mb-4 flex items-center gap-2">
-              🤖 基础信息
+              🤖 Basic Info
             </h3>
             <div className="space-y-3">
               <InfoRow
-                label="交易员名称"
+                label="Trader Name"
                 value={traderData.trader_name}
               />
               <InfoRow
-                label="AI模型"
+                label="AI Model"
                 value={getShortName(traderData.ai_model).toUpperCase()}
               />
               <InfoRow
-                label="交易所"
+                label="Exchange"
                 value={getShortName(traderData.exchange_id).toUpperCase()}
               />
               <InfoRow
-                label="初始余额"
+                label="Initial Balance"
                 value={`$${traderData.initial_balance.toLocaleString()}`}
               />
               <InfoRow
-                label="保证金模式"
-                value={traderData.is_cross_margin ? '全仓' : '逐仓'}
+                label="Margin Mode"
+                value={traderData.is_cross_margin ? 'Cross' : 'Isolated'}
               />
               <InfoRow
-                label="扫描间隔"
-                value={`${traderData.scan_interval_minutes || 3} 分钟`}
+                label="Scan Interval"
+                value={`${traderData.scan_interval_minutes || 3} minutes`}
               />
             </div>
           </div>
@@ -117,11 +117,11 @@ export function TraderConfigViewModal({
           {traderData.strategy_id && (
             <div className="bg-[#0B0E11] border border-[#2B3139] rounded-lg p-5">
               <h3 className="text-lg font-semibold text-[#EAECEF] mb-4 flex items-center gap-2">
-                📋 使用策略
+                📋 Strategy
               </h3>
               <div className="space-y-3">
                 <InfoRow
-                  label="策略名称"
+                  label="Strategy Name"
                   value={traderData.strategy_name || traderData.strategy_id}
                 />
               </div>
@@ -135,7 +135,7 @@ export function TraderConfigViewModal({
             onClick={onClose}
             className="px-6 py-3 bg-[#2B3139] text-[#EAECEF] rounded-lg hover:bg-[#404750] transition-all duration-200 border border-[#404750]"
           >
-            关闭
+            Close
           </button>
         </div>
       </div>

@@ -355,9 +355,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       }
 
       await toast.promise(api.createTrader(data), {
-        loading: '正在创建…',
-        success: '创建成功',
-        error: '创建失败',
+        loading: 'Creating…',
+        success: 'Created successfully',
+        error: 'Failed to create',
       })
       setShowCreateModal(false)
       // Immediately refresh traders list for better UX
@@ -413,9 +413,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       console.log('🔥 handleSaveEditTrader - request:', request)
 
       await toast.promise(api.updateTrader(editingTrader.trader_id, request), {
-        loading: '正在保存…',
-        success: '保存成功',
-        error: '保存失败',
+        loading: 'Saving…',
+        success: 'Saved successfully',
+        error: 'Failed to save',
       })
       setShowEditModal(false)
       setEditingTrader(null)
@@ -435,9 +435,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
     try {
       await toast.promise(api.deleteTrader(traderId), {
-        loading: '正在删除…',
-        success: '删除成功',
-        error: '删除失败',
+        loading: 'Deleting…',
+        success: 'Deleted successfully',
+        error: 'Failed to delete',
       })
 
       // Immediately refresh traders list for better UX
@@ -452,15 +452,15 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     try {
       if (running) {
         await toast.promise(api.stopTrader(traderId), {
-          loading: '正在停止…',
-          success: '已停止',
-          error: '停止失败',
+          loading: 'Stopping…',
+          success: 'Stopped',
+          error: 'Failed to stop',
         })
       } else {
         await toast.promise(api.startTrader(traderId), {
-          loading: '正在启动…',
-          success: '已启动',
-          error: '启动失败',
+          loading: 'Starting…',
+          success: 'Started',
+          error: 'Failed to start',
         })
       }
 
@@ -476,9 +476,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     try {
       const newValue = !currentShowInCompetition
       await toast.promise(api.toggleCompetition(traderId, newValue), {
-        loading: '正在更新…',
-        success: newValue ? '已在竞技场显示' : '已在竞技场隐藏',
-        error: '更新失败',
+        loading: 'Updating…',
+        success: newValue ? 'Shown in arena' : 'Hidden from arena',
+        error: 'Failed to update',
       })
 
       // Immediately refresh traders list to update status
@@ -543,9 +543,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
       const request = config.buildRequest(updatedItems)
       await toast.promise(config.updateApi(request), {
-        loading: '正在更新配置…',
-        success: '配置已更新',
-        error: '更新配置失败',
+        loading: 'Updating config…',
+        success: 'Config updated',
+        error: 'Failed to update config',
       })
 
       // 重新获取用户配置以确保数据同步
@@ -662,9 +662,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       }
 
       await toast.promise(api.updateModelConfigs(request), {
-        loading: '正在更新模型配置…',
-        success: '模型配置已更新',
-        error: '更新模型配置失败',
+        loading: 'Updating model config…',
+        success: 'Model config updated',
+        error: 'Failed to update model config',
       })
 
       // 重新获取用户配置以确保数据同步
@@ -1280,7 +1280,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                               color: '#848E9C',
                             }
                         }
-                        title={trader.show_in_competition !== false ? '在竞技场显示' : '在竞技场隐藏'}
+                        title={trader.show_in_competition !== false ? (language === 'zh' ? '在竞技场显示' : 'Show in Arena') : (language === 'zh' ? '在竞技场隐藏' : 'Hide from Arena')}
                       >
                         {trader.show_in_competition !== false ? (
                           <Eye className="w-3 h-3 md:w-4 md:h-4" />

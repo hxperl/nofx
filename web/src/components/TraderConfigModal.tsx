@@ -367,9 +367,9 @@ export function TraderConfigModal({
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs text-[#848E9C]">
                     <div>
-                      {t('coinSource', language)}: {selectedStrategy.config.coin_source.source_type === 'static' ? '固定币种' :
+                      {t('coinSource', language)}: {selectedStrategy.config.coin_source.source_type === 'static' ? (language === 'zh' ? '固定币种' : 'Fixed coins') :
                         selectedStrategy.config.coin_source.source_type === 'ai500' ? 'AI500' :
-                        selectedStrategy.config.coin_source.source_type === 'oi_top' ? 'OI Top' : '混合'}
+                        selectedStrategy.config.coin_source.source_type === 'oi_top' ? 'OI Top' : (language === 'zh' ? '混合' : 'Mixed')}
                     </div>
                     <div>
                       {t('marginLimit', language)}: {((selectedStrategy.config.risk_control?.max_margin_usage || 0.9) * 100).toFixed(0)}%

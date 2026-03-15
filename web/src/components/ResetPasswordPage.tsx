@@ -39,7 +39,7 @@ export function ResetPasswordPage() {
 
     if (result.success) {
       setSuccess(true)
-      toast.success(t('resetPasswordSuccess', language) || '重置成功')
+      toast.success(t('resetPasswordSuccess', language) || 'Reset successful')
       // 3秒后跳转到登录页面
       setTimeout(() => {
         window.history.pushState({}, '', '/login')
@@ -88,7 +88,7 @@ export function ResetPasswordPage() {
               {t('resetPasswordTitle', language)}
             </h1>
             <p className="text-sm mt-2" style={{ color: '#848E9C' }}>
-              使用邮箱和 Google Authenticator 重置密码
+              Reset password with email and Google Authenticator
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export function ResetPasswordPage() {
                   {t('resetPasswordSuccess', language)}
                 </p>
                 <p className="text-sm" style={{ color: '#848E9C' }}>
-                  3秒后将自动跳转到登录页面...
+                  Redirecting to login page in 3 seconds...
                 </p>
               </div>
             ) : (
@@ -240,7 +240,7 @@ export function ResetPasswordPage() {
                   <div className="text-center mb-3">
                     <div className="text-3xl">📱</div>
                     <p className="text-xs mt-1" style={{ color: '#848E9C' }}>
-                      打开 Google Authenticator 获取6位验证码
+                      Open Google Authenticator to get 6-digit code
                     </p>
                   </div>
                   <input

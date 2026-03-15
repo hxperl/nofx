@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         // Unexpected success response
-        return { success: false, message: '登录响应异常' }
+        return { success: false, message: 'Login response error' }
       } else {
         return {
           success: false,
@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
-      return { success: false, message: '登录失败，请重试' }
+      return { success: false, message: 'Login failed, please try again' }
     }
   }
 
@@ -196,10 +196,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { success: true }
       } else {
-        return { success: false, message: data.error || '登录失败' }
+        return { success: false, message: data.error || 'Login failed' }
       }
     } catch (e) {
-      return { success: false, message: '登录失败，请重试' }
+      return { success: false, message: 'Login failed, please try again' }
     }
   }
 
@@ -292,7 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: data.error }
       }
     } catch (error) {
-      return { success: false, message: 'OTP验证失败，请重试' }
+      return { success: false, message: 'OTP verification failed, please try again' }
     }
   }
 
@@ -336,7 +336,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: data.error }
       }
     } catch (error) {
-      return { success: false, message: '注册完成失败，请重试' }
+      return { success: false, message: 'Registration failed, please try again' }
     }
   }
 
@@ -366,7 +366,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: data.error }
       }
     } catch (error) {
-      return { success: false, message: '密码重置失败，请重试' }
+      return { success: false, message: 'Password reset failed, please try again' }
     }
   }
 
