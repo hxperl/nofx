@@ -643,3 +643,192 @@ func (s *Server) runRealAITest(userID, modelID, systemPrompt, userPrompt string)
 	return response, nil
 }
 
+// handleStrategyTestRunStream handles AI test with SSE streaming response
+func (s *Server) handleStrategyTestRunStream(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var req struct {
+		Config        store.StrategyConfig `json:"config" binding:"required"`
+		PromptVariant string               `json:"prompt_variant"`
+		AIModelID     string               `json:"ai_model_id"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		SafeBadRequest(c, "Invalid request parameters")
+		return
+	}
+
+	if req.PromptVariant == "" {
+		req.PromptVariant = "balanced"
+	}
+
+	if req.AIModelID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "AI model ID is required for streaming"})
+		return
+	}
+
+	// Build prompts (same as non-streaming)
+	engine := kernel.NewStrategyEngine(&req.Config)
+
+	candidates, err := engine.GetCandidateCoins()
+	if err != nil {
+		logger.Errorf("[API Error] Failed to get candidate coins: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get candidate coins"})
+		return
+	}
+
+	timeframes := req.Config.Indicators.Klines.SelectedTimeframes
+	primaryTimeframe := req.Config.Indicators.Klines.PrimaryTimeframe
+	klineCount := req.Config.Indicators.Klines.PrimaryCount
+
+	if len(timeframes) == 0 {
+		if primaryTimeframe != "" {
+			timeframes = append(timeframes, primaryTimeframe)
+		} else {
+			timeframes = append(timeframes, "3m")
+		}
+		if req.Config.Indicators.Klines.LongerTimeframe != "" {
+			timeframes = append(timeframes, req.Config.Indicators.Klines.LongerTimeframe)
+		}
+	}
+	if primaryTimeframe == "" {
+		primaryTimeframe = timeframes[0]
+	}
+	if klineCount <= 0 {
+		klineCount = 30
+	}
+
+	marketDataMap := make(map[string]*market.Data)
+	for _, coin := range candidates {
+		data, err := market.GetWithTimeframes(coin.Symbol, timeframes, primaryTimeframe, klineCount)
+		if err != nil {
+			fmt.Printf("⚠️  Failed to get market data for %s: %v\n", coin.Symbol, err)
+			continue
+		}
+		marketDataMap[coin.Symbol] = data
+	}
+
+	symbols := make([]string, 0, len(candidates))
+	for _, c := range candidates {
+		symbols = append(symbols, c.Symbol)
+	}
+	quantDataMap := engine.FetchQuantDataBatch(symbols)
+	oiRankingData := engine.FetchOIRankingData()
+	netFlowRankingData := engine.FetchNetFlowRankingData()
+	priceRankingData := engine.FetchPriceRankingData()
+
+	testContext := &kernel.Context{
+		CurrentTime:        time.Now().UTC().Format("2006-01-02 15:04:05 UTC"),
+		RuntimeMinutes:     0,
+		CallCount:          1,
+		Account:            kernel.AccountInfo{TotalEquity: 1000.0, AvailableBalance: 1000.0},
+		Positions:          []kernel.PositionInfo{},
+		CandidateCoins:     candidates,
+		PromptVariant:      req.PromptVariant,
+		MarketDataMap:      marketDataMap,
+		QuantDataMap:       quantDataMap,
+		OIRankingData:      oiRankingData,
+		NetFlowRankingData: netFlowRankingData,
+		PriceRankingData:   priceRankingData,
+	}
+
+	systemPrompt := engine.BuildSystemPrompt(1000.0, req.PromptVariant)
+	userPrompt := engine.BuildUserPrompt(testContext)
+
+	// Set up AI client
+	aiClient, aiErr := s.createAIClient(userID, req.AIModelID)
+	if aiErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": aiErr.Error()})
+		return
+	}
+
+	// Set SSE headers
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("Transfer-Encoding", "chunked")
+
+	// Send initial event with prompts
+	initialData, _ := json.Marshal(map[string]interface{}{
+		"system_prompt":   systemPrompt,
+		"user_prompt":     userPrompt,
+		"candidate_count": len(candidates),
+		"prompt_variant":  req.PromptVariant,
+	})
+	c.Writer.Write([]byte(fmt.Sprintf("event: init\ndata: %s\n\n", initialData)))
+	c.Writer.Flush()
+
+	// Stream AI response
+	startTime := time.Now()
+	fullResponse, streamErr := aiClient.CallWithMessagesStream(systemPrompt, userPrompt, func(chunk string) {
+		chunkData, _ := json.Marshal(map[string]string{"content": chunk})
+		c.Writer.Write([]byte(fmt.Sprintf("event: chunk\ndata: %s\n\n", chunkData)))
+		c.Writer.Flush()
+	})
+
+	duration := time.Since(startTime).Milliseconds()
+
+	if streamErr != nil {
+		errData, _ := json.Marshal(map[string]string{"error": streamErr.Error()})
+		c.Writer.Write([]byte(fmt.Sprintf("event: error\ndata: %s\n\n", errData)))
+		c.Writer.Flush()
+		return
+	}
+
+	// Send done event
+	doneData, _ := json.Marshal(map[string]interface{}{
+		"ai_response": fullResponse,
+		"duration_ms": duration,
+	})
+	c.Writer.Write([]byte(fmt.Sprintf("event: done\ndata: %s\n\n", doneData)))
+	c.Writer.Flush()
+}
+
+// createAIClient creates an AI client for the given user and model ID
+func (s *Server) createAIClient(userID, modelID string) (mcp.AIClient, error) {
+	model, err := s.store.AIModel().Get(userID, modelID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get AI model: %w", err)
+	}
+
+	if !model.Enabled {
+		return nil, fmt.Errorf("AI model %s is not enabled", model.Name)
+	}
+
+	if model.APIKey == "" && model.Provider != "claude-code" {
+		return nil, fmt.Errorf("AI model %s is missing API Key", model.Name)
+	}
+
+	var aiClient mcp.AIClient
+	apiKey := string(model.APIKey)
+
+	switch model.Provider {
+	case "qwen":
+		aiClient = mcp.NewQwenClient()
+	case "deepseek":
+		aiClient = mcp.NewDeepSeekClient()
+	case "claude":
+		aiClient = mcp.NewClaudeClient()
+	case "kimi":
+		aiClient = mcp.NewKimiClient()
+	case "gemini":
+		aiClient = mcp.NewGeminiClient()
+	case "grok":
+		aiClient = mcp.NewGrokClient()
+	case "openai":
+		aiClient = mcp.NewOpenAIClient()
+	case "claude-code":
+		aiClient = mcp.NewClaudeCodeClient()
+		aiClient.SetAPIKey("", "", model.CustomModelName)
+		return aiClient, nil
+	default:
+		aiClient = mcp.NewClient()
+	}
+
+	aiClient.SetAPIKey(apiKey, model.CustomAPIURL, model.CustomModelName)
+	return aiClient, nil
+}
