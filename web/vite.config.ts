@@ -6,9 +6,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
+    allowedHosts: ['trading.enaible.biz'],
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8002',
         changeOrigin: true,
       },
     },
