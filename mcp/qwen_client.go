@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"net/http"
+	"strings"
 )
 
 const (
@@ -80,4 +81,22 @@ func (qwenClient *QwenClient) SetAPIKey(apiKey string, customURL string, customM
 
 func (qwenClient *QwenClient) setAuthHeader(reqHeaders http.Header) {
 	qwenClient.Client.setAuthHeader(reqHeaders)
+}
+
+// buildMCPRequestBody overrides the base client to apply model-specific defaults
+func (qwenClient *QwenClient) buildMCPRequestBody(systemPrompt, userPrompt string) map[string]any {
+	requestBody := qwenClient.Client.buildMCPRequestBody(systemPrompt, userPrompt)
+
+	// Model-specific config for qwen3.5-122b
+	if strings.Contains(strings.ToLower(qwenClient.Model), "qwen3.5-122b") {
+		requestBody["temperature"] = 1.0
+		requestBody["top_p"] = 1.0
+		requestBody["top_k"] = 40
+		requestBody["min_p"] = 0.0
+		requestBody["presence_penalty"] = 2.0
+		requestBody["repetition_penalty"] = 1.0
+		qwenClient.logger.Infof("🔧 [MCP] Applied qwen3.5-122b model-specific config: temperature=1.0, top_p=1.0, top_k=40, min_p=0.0, presence_penalty=2.0, repetition_penalty=1.0")
+	}
+
+	return requestBody
 }
